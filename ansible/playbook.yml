@@ -1,0 +1,61 @@
+- name: launch OpenStack
+  hosts: all
+  remote_user: ubuntu
+  tasks:
+
+  - name: some basic apt stuff
+    become: true
+    become_user: root
+    apt: pkg={{item}} state=installed
+         update_cache=yes cache_valid_time=3600
+    with_items:
+      - git
+      - build-essential
+      - libxslt1-dev
+      - python-setuptools
+
+  - name: ensure pip is installed
+    become: true
+    become_user: root
+    easy_install:
+      name: pip
+      state: latest
+
+  - name: ensure setuptools, pip and tox are installed at the lates version
+    become: true
+    become_user: root
+    action: pip name={{item}} state=latest
+    with_items:
+      - setuptools
+      - pip
+      - tox
+
+  - name: clone devstack
+    git: repo=https://github.com/openstack-dev/devstack.git
+         dest=~/devstack
+         version=master
+
+  - name: Copy get_proxy_env.py
+    template: src=get_proxy_env.py
+              dest=~/devstack/local.conf
+
+  - name: Copy local.conf
+    template: src=local.conf
+              dest=~/devstack/local.conf
+
+  - name: Fix proxy environment
+    become: true
+    become_user: root
+    script: get_proxy_env.py /etc/profile.d/proxy.sh
+
+  - name: Unstack it
+    command: bash -c 'rm .stacking && ./unstack.sh'
+    args:
+      chdir: ~/devstack 
+      removes: .stacking
+
+  - name: Stack it
+    command: bash -c 'touch .stacking && echo ./stack.sh'
+    register: stack_result
+    args:
+      chdir: ~/devstack 
