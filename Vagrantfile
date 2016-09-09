@@ -10,15 +10,6 @@ if http_proxy or https_proxy
   require 'vagrant-proxyconf'
 end
 
-# This where the working directory is going to be copied/mounted inside of
-# produced VM.
-source_dir="/vagrant"
-
-# This is the synchronization strategy to copy or mount wirking directory
-# inside the VM. For more details read below doc:
-#     https://www.vagrantup.com/docs/synced-folders/
-sync_type="rsync"
-
 # For the purpose of deplying openstack code inside provisioned VM it is using
 # git to fetch source code from upstream. The repository server can be changed
 # by setting this variable to point to some other place.
@@ -34,9 +25,6 @@ git_base = ENV["GIT_BASE"] or ""
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 Vagrant.configure(2) do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
@@ -55,7 +43,7 @@ Vagrant.configure(2) do |config|
   # Collectd will fail to install if it is not able to resolve the ip from its
   # hostname. Setting the host name here will make Vagrant configuring
   # /etc/hosts fixing this problem
-  config.vm.hostname = "vagrant"
+  config.vm.hostname = "networking-odl-ws"
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP. This internal private network will be used by collectd
@@ -66,22 +54,7 @@ Vagrant.configure(2) do |config|
   # your network.
   # config.vm.network "public_network"
 
-  # Share an additional folder to the guest VM. The first argument is
-  # the path on the host to the actual folder. The second argument is
-  # the path on the guest to mount the folder. And the optional third
-  # argument is a set of non-required options.
-  config.vm.synced_folder ".", source_dir,\
-    create:true, type: sync_type,
-    rsync__exclude: ".tox"
-
-  # Use the same DNS server as the host machine
-  config.vm.provision "file", source: "/etc/resolv.conf",
-    destination: "~/resolv.conf"
-
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
+  # Virtual box specific configuration
   config.vm.provider "virtualbox" do |vb|
     # Display the VirtualBox GUI when booting the machine
     vb.gui = false
@@ -89,23 +62,12 @@ Vagrant.configure(2) do |config|
     # Customize the amount of memory on the VM. This ammout is recommended
     # to make OpenStack working.
     vb.memory = "2048"
+
+    # Set machine hostname
     vb.name = "networking-odl-ws"
   end
 
-  # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
-  # such as FTP and Heroku are also available. See the documentation at
-  # https://docs.vagrantup.com/v2/push/atlas.html for more information.
-  # config.push.define "atlas" do |push|
-  #   push.app = "YOUR_ATLAS_USERNAME/YOUR_APPLICATION_NAME"
-  # end
-
-  # Fix slow connection problems
-  # config.vm.provider "virtualbox" do |v|
-  #   v.customize ["modifyvm", :id, "--nictype1", "virtio"]
-  # end
-
-
-  # Configure proxy variables
+  # Use the same Proxy servers as the host machine
   if Vagrant.has_plugin?("vagrant-proxyconf")
     require 'resolv'
     Resolv.getaddresses("http_proxy")
@@ -120,35 +82,19 @@ Vagrant.configure(2) do |config|
     end
   end
 
-  config.vm.provider :virtualbox do |vb|
-    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "off"]
-    vb.customize ["modifyvm", :id, "--natdnsproxy1", "off"]
-  end
+  # Use the same DNS server as the host machine
+  config.vm.provision "file", source: "/etc/resolv.conf",
+    destination: "~/resolv.conf"
+  config.vm.provision "shell", privileged: false,
+    inline: "sudo mv ~/resolv.conf /etc/resolv.conf"
 
-  config.vm.provision "shell", privileged: false, inline: <<-SHELL
-    echo "Start provisioning."
-    set -ex
-    export DEBIAN_FRONTEND="noninteractive"
+  # assure python is installed
+  config.vm.provision "shell", privileged: true,
+    inline: "python --version || DEBIAN_FRONTEND=noninteractive apt-get install -y python-minimal"
 
-    if [ -f ~/resolv.conf ]; then
-      sudo mv ~/resolv.conf /etc/resolv.conf
-    fi
-
-    if ! python --version; then
-      echo "Update and install python required by ansible."
-      sudo apt-get update
-      sudo apt-get upgrade -y
-      sudo apt-get install -y python-minimal
-    fi
-
-    TMP_PROFILE_FILE=$(mktemp)
-    echo export GIT_BASE="#{git_base}" >> $TMP_PROFILE_FILE
-    sudo mv "$TMP_PROFILE_FILE" "/etc/profile.d/user.sh"
-  SHELL
-
+  # Run ansible playbook
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "ansible/playbook.yml"
-    # ansible.inventory_path = "ansible/hosts"
     ansible.limit = "all"
   end
 

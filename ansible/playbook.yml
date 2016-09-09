@@ -1,6 +1,9 @@
-- name: launch OpenStack
+- name: Launch OpenStack
   hosts: all
   remote_user: ubuntu
+  vars:
+    git_base: "{{lookup('env', 'GIT_BASE')}}"
+
   tasks:
 
   - name: Install some basic apt stuff
@@ -37,7 +40,7 @@
 
   - name: Clone devstack
     retries: 3
-    git: repo=https://github.com/openstack-dev/devstack.git
+    git: repo={{git_base}}/openstack-dev/devstack.git
          dest=~/devstack
          version=master
 
@@ -57,3 +60,5 @@
   - name: Deploy and launch OpenStak using devstack
     retries: 3
     script: stack.sh ~/devstack
+    environment:
+      GIT_BASE: "{{git_base}}"
