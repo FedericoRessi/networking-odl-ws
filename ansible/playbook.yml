@@ -3,7 +3,7 @@
   remote_user: ubuntu
   tasks:
 
-  - name: some basic apt stuff
+  - name: Install some basic apt stuff
     become: true
     become_user: root
     apt: pkg={{item}} state=installed
@@ -14,14 +14,14 @@
       - libxslt1-dev
       - python-setuptools
 
-  - name: ensure pip is installed
+  - name: Ensure last pip is installed
     become: true
     become_user: root
     easy_install:
       name: pip
       state: latest
 
-  - name: ensure setuptools, pip and tox are installed at the lates version
+  - name: Ensure setuptools, pip, tox... are installed at the latest version
     become: true
     become_user: root
     action: pip name={{item}} state=latest
@@ -29,8 +29,9 @@
       - setuptools
       - pip
       - tox
+      - python-openstackclient
 
-  - name: clone devstack
+  - name: Clone devstack
     git: repo=https://github.com/openstack-dev/devstack.git
          dest=~/devstack
          version=master
@@ -55,7 +56,7 @@
       removes: .stacking
 
   - name: Stack it
-    command: bash -c 'touch .stacking && echo ./stack.sh'
+    command: bash -c 'touch .stacking && ./stack.sh'
     register: stack_result
     args:
       chdir: ~/devstack 
