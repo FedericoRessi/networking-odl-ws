@@ -6,6 +6,7 @@
   - name: Install some basic apt stuff
     become: true
     become_user: root
+    retries: 3
     apt: pkg={{item}} state=installed
          update_cache=yes cache_valid_time=3600
     with_items:
@@ -18,6 +19,7 @@
   - name: Ensure last pip is installed
     become: true
     become_user: root
+    retries: 3
     easy_install:
       name: pip
       state: latest
@@ -26,13 +28,15 @@
     become: true
     become_user: root
     action: pip name={{item}} state=latest
+    retries: 3
     with_items:
       - setuptools
       - pip
       - tox
-      - python-openstackclient
+      - python-openstackclient<27.0.0
 
   - name: Clone devstack
+    retries: 3
     git: repo=https://github.com/openstack-dev/devstack.git
          dest=~/devstack
          version=master
@@ -51,4 +55,5 @@
     script: get_proxy_env.py /etc/profile.d/proxy.sh
 
   - name: Deploy and launch OpenStak using devstack
+    retries: 3
     script: stack.sh ~/devstack
