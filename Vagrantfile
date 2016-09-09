@@ -10,15 +10,6 @@ if http_proxy or https_proxy
   require 'vagrant-proxyconf'
 end
 
-# For the purpose of deplying openstack code inside provisioned VM it is using
-# git to fetch source code from upstream. The repository server can be changed
-# by setting this variable to point to some other place.
-# A common alternative value is "https://github.com"
-# This value is taken from host env configuration when available.
-# If this value is empty then the default git server knwon by devstak is used
-# that in the moment this doc is written is "https://git.openstack.org"
-git_base = ENV["GIT_BASE"] or ""
-
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for

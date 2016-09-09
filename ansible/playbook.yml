@@ -2,7 +2,7 @@
   hosts: all
   remote_user: ubuntu
   vars:
-    git_base: "{{lookup('env', 'GIT_BASE')}}"
+    git_base: "{{lookup('env', 'GIT_BASE') or 'https://git.openstack.org'}}"
 
   tasks:
 
