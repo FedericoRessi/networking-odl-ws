@@ -13,6 +13,7 @@
       - build-essential
       - libxslt1-dev
       - python-setuptools
+      - python-dev
 
   - name: Ensure last pip is installed
     become: true
@@ -49,14 +50,5 @@
     become_user: root
     script: get_proxy_env.py /etc/profile.d/proxy.sh
 
-  - name: Unstack it
-    command: bash -c 'rm .stacking && ./unstack.sh'
-    args:
-      chdir: ~/devstack 
-      removes: .stacking
-
-  - name: Stack it
-    command: bash -c 'touch .stacking && ./stack.sh'
-    register: stack_result
-    args:
-      chdir: ~/devstack 
+  - name: Deploy and launch OpenStak using devstack
+    script: stack.sh ~/devstack
