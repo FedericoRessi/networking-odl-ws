@@ -52,7 +52,7 @@ Vagrant.configure(2) do |config|
 
     # Customize the amount of memory on the VM. This ammout is recommended
     # to make OpenStack working.
-    vb.memory = "2048"
+    vb.memory = "8192"
 
     # Set machine hostname
     vb.name = "networking-odl-ws"
