@@ -34,7 +34,6 @@
     retries: 3
     with_items:
       - setuptools
-      - pip
       - tox
       - python-openstackclient<27.0.0
 
@@ -48,14 +47,14 @@
     template: src=get_proxy_env.py
               dest=~/devstack/local.conf
 
-  - name: Copy local.conf
-    template: src=local.conf
-              dest=~/devstack/local.conf
-
   - name: Fix proxy environment
     become: true
     become_user: root
     script: get_proxy_env.py /etc/profile.d/proxy.sh
+
+  - name: Copy local.conf
+    template: src=local.conf
+              dest=~/devstack/local.conf
 
   - name: Deploy and launch OpenStak using devstack
     retries: 3
