@@ -11,6 +11,11 @@ if http_proxy or https_proxy
 end
 
 
+control_ip = "192.168.0.10"
+
+tenant_ip = "192.168.1.10"
+
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -36,9 +41,15 @@ Vagrant.configure(2) do |config|
   # /etc/hosts fixing this problem
   config.vm.hostname = "networking-odl-ws"
 
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP. This internal private network will be used by collectd
-  config.vm.network "private_network", ip: "192.168.0.10"
+  # control network
+  config.vm.network "private_network",
+      virtualbox__intnet: "controlnet-networking-odl-ws",
+      ip: control_ip, auto_config: true
+
+  # tenent network
+  config.vm.network "private_network",
+      virtualbox__intnet: "tenentnet-networking-odl-ws",
+      ip: tenant_ip, auto_config: true
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
