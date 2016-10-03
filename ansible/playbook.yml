@@ -36,6 +36,7 @@
       - setuptools
       - tox
       - python-openstackclient<27.0.0
+      - pycparser
 
   - name: Fix proxy environment
     become: true
