@@ -36,12 +36,11 @@
       - setuptools
       - tox
       - python-openstackclient<27.0.0
-      - pycparser
 
   - name: Fix proxy environment
     become: true
     become_user: root
-    script: get_proxy_env.py /etc/profile.d/proxy.sh
+    script: provision/get_proxy_env.py /etc/profile.d/proxy.sh
 
   - name: Clone devstack
     retries: 3
@@ -50,14 +49,14 @@
          version=master
 
   - name: Copy local.conf
-    template: src=local.conf
+    template: src=provision/local.conf
               dest={{ devstack_dir }}/local.conf
 
   - name: Deploy and launch OpenStak using devstack (OFFLINE)
     retries: 1
     ignore_errors: yes
     register: stack_result
-    script: stack.sh removes="{{ devstack_dir }}/.stacked"
+    script: provision/stack.sh removes="{{ devstack_dir }}/.stacked"
     environment:
       OFFLINE: True
       GIT_BASE: "{{ git_base }}"
@@ -66,7 +65,7 @@
   - name: Deploy and launch OpenStak using devstack
     retries: 1
     register: stack_result
-    script: stack.sh creates="{{ devstack_dir }}/.stacked"
+    script: provision/stack.sh creates="{{ devstack_dir }}/.stacked"
     environment:
       OFFLINE: False
       GIT_BASE: "{{ git_base }}"
